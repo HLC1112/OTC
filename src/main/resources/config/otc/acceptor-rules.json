@@ -1,0 +1,4 @@
+{
+  "min_deposit_amount": 1000,
+  "allowed_currencies": ["USDT", "BTC"]
+}

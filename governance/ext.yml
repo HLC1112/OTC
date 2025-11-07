@@ -1,0 +1,21 @@
+ext:
+  jvm:
+    - id: "spring-boot"
+      module: "org.springframework.boot"
+      description: "Spring Boot platform"
+    - id: "spring-kafka"
+      module: "org.springframework.kafka"
+      description: "Spring Kafka client"
+    - id: "spring-data-mongodb"
+      module: "org.springframework.data.mongodb"
+      description: "Spring Data MongoDB"
+    - id: "jackson"
+      module: "com.fasterxml.jackson"
+      description: "Jackson JSON suite"
+    - id: "flyway"
+      module: "org.flywaydb"
+      description: "Flyway migrations"
+  node:
+    - id: "lodash"
+      package: "lodash"
+      description: "Utility library"

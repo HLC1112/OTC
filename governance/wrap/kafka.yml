@@ -1,0 +1,13 @@
+WRAP:
+  kafka:
+    send:
+      v1:
+        ext_ref: "spring-kafka"
+        description: "统一 Kafka 发送出口（topic/key/value）"
+        status: "active"
+        deprecated: false
+        next_version: null
+        sunset: null
+        bridge: "WRAP-APP_BE"
+        author: "ILGC"
+        registered_at: "2025-11-03T00:00:00Z"

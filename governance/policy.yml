@@ -1,0 +1,9 @@
+vulnerability_gate:
+  severity_cutoff: "HIGH"
+  allowlist: []
+  auto_pr_on_patch: true
+
+sunset_policy:
+  global_sunset_enforcement: true
+  warning_days: 30
+  block_days: 0

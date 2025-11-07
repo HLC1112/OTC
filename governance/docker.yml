@@ -1,0 +1,5 @@
+images:
+  - id: "backend-base"
+    repository: "eclipse-temurin:17-jre"
+    digest: "sha256:<to-be-defined>"
+    description: "JRE base image for backend services"

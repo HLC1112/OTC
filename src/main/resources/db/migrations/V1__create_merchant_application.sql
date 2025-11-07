@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS T_MERCHANT_APPLICATION (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(64) NOT NULL,
+    status VARCHAR(32) NOT NULL,
+    deposit_amount DECIMAL(19,4) NOT NULL,
+    deposit_currency VARCHAR(16) NOT NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL
+);
