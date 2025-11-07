@@ -4,7 +4,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import com.example.otc.common.lang.Otc3
+import java.time.Instant
 
 @Entity
 @Table(name = "T_USER_PERMISSION")
@@ -19,5 +19,5 @@ class UserPermissionEntity(
     var permission: String = "",
 
     @Column(name = "granted_at", nullable = false)
-    var grantedAt: Otc3 = Otc3.now()
+    var grantedAt: Instant = Instant.now()
 )

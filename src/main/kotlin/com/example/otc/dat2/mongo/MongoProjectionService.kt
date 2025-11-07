@@ -1,19 +1,19 @@
 package com.example.otc.dat2.mongo
 
 import com.example.otc.common.doc.ApplicationApprovedDoc
-import com.example.otc.common.lang.Otc3
-import com.example.otc.common.lang.OtcMongoTemplate
-import com.example.otc.common.lang.Otc10
+import org.slf4j.LoggerFactory
+import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Service
+import java.time.Instant
 
 @Service
 class MongoProjectionService(
-    private val mongoTemplate: OtcMongoTemplate
+    private val mongoTemplate: MongoTemplate
 ) {
-    private val logger = Otc10.getLogger(MongoProjectionService::class.java)
+    private val logger = LoggerFactory.getLogger(MongoProjectionService::class.java)
 
     fun projectApproved(doc: ApplicationApprovedDoc) {
         val permission = doc.details["permission"]?.toString()
@@ -31,20 +31,20 @@ class MongoProjectionService(
             .set("status", "Approved")
             .set("permission", permission)
             .set("approvedAt", doc.approvedAt)
-            .set("updatedAt", Otc3.now())
+            .set("updatedAt", Instant.now())
 
         val result = mongoTemplate.upsert(query, update, ApplicationApprovalDoc::class.java)
         logger.info("[Projection] upsert application_approvals id={} matched={} modified={}", doc.applicationId, result.matchedCount, result.modifiedCount)
     }
 
-    private fun upsertUserPermission(userId: String, permission: String, grantedAt: Otc3) {
+    private fun upsertUserPermission(userId: String, permission: String, grantedAt: Instant) {
         val id = "$userId:$permission"
         val query = Query.query(Criteria.where("_id").`is`(id))
         val update = Update()
             .setOnInsert("userId", userId)
             .setOnInsert("permission", permission)
             .set("grantedAt", grantedAt)
-            .set("updatedAt", Otc3.now())
+            .set("updatedAt", Instant.now())
 
         val result = mongoTemplate.upsert(query, update, UserPermissionDoc::class.java)
         logger.info("[Projection] upsert user_permissions id={} matched={} modified={}", id, result.matchedCount, result.modifiedCount)

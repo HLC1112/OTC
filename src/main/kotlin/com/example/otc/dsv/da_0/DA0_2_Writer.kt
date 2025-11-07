@@ -1,9 +1,4 @@
 package com.example.otc.dsv.da_0
-/**
- * DA 层写入服务（包含 Outbox 模式）：
- * - 授权用户权限并更新申请状态，在同一事务内写入 Outbox 事件。
- * - 失败时抛出统一的业务异常码，便于上层 FSM 做失败分支处理。
- */
 
 import com.example.otc.common.doc.ApplicationApprovedDoc
 import com.example.otc.common.evt.PermissionGrantedEvt
@@ -13,24 +8,24 @@ import com.example.otc.dat1.entity.OutboxEvtEntity
 import com.example.otc.dat1.mysql.OutboxEvtJpa
 import com.example.otc.dsv.dbs.repository.ApplicationsRepository
 import com.example.otc.dsv.dbs.repository.UserPermissionsRepository
-import com.example.otc.common.lang.OtcObjectMapper
-import com.example.otc.common.lang.Otc10
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import com.example.otc.common.lang.Otc3
-import com.example.otc.common.lang.Otc4
+import java.time.Instant
+import java.util.UUID
 
 /**
- * DA 层写操作：通过数据库访问执行权限授予，并采用 Outbox 模式保证事件可靠投递。
+ * DA0 - performs write operations with DB access, using Outbox pattern.
  */
 @Service
 class PermissionWriter(
     private val applicationsRepository: ApplicationsRepository,
     private val userPermissionsRepository: UserPermissionsRepository,
     private val outboxJpa: OutboxEvtJpa,
-    private val objectMapper: OtcObjectMapper
+    private val objectMapper: ObjectMapper
 ) {
-    private val logger = Otc10.getLogger(PermissionWriter::class.java)
+    private val logger = LoggerFactory.getLogger(PermissionWriter::class.java)
 
     @Transactional
     fun grantPermission(applicationId: String, userId: String, permission: String): PermissionGrantedEvt {
@@ -44,7 +39,7 @@ class PermissionWriter(
                 applicationId = applicationId,
                 userId = userId,
                 permission = permission,
-                grantedAt = Otc3.now()
+                grantedAt = Instant.now()
             )
 
             val approvedDoc = ApplicationApprovedDoc(
@@ -54,14 +49,14 @@ class PermissionWriter(
                 details = mapOf("permission" to permission)
             )
 
-            // Outbox 写入：与权限授予处于同一事务，确保一致性
+            // Outbox write in same TX
             val outbox = OutboxEvtEntity(
-                id = Otc4.randomUUID().toString(),
+                id = UUID.randomUUID().toString(),
                 aggregateType = "Application",
                 aggregateId = applicationId,
                 eventType = "ApplicationApprovedDoc",
                 payloadJson = objectMapper.writeValueAsString(approvedDoc),
-                createdAt = Otc3.now(),
+                createdAt = Instant.now(),
                 sentAt = null
             )
             outboxJpa.save(outbox)

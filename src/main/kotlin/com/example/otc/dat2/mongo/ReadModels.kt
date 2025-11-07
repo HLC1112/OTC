@@ -2,7 +2,7 @@ package com.example.otc.dat2.mongo
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
-import com.example.otc.common.lang.Otc3
+import java.time.Instant
 
 @Document("application_approvals")
 data class ApplicationApprovalDoc(
@@ -11,8 +11,8 @@ data class ApplicationApprovalDoc(
     val userId: String,
     val status: String,
     val permission: String?,
-    val approvedAt: Otc3,
-    val updatedAt: Otc3
+    val approvedAt: Instant,
+    val updatedAt: Instant
 )
 
 @Document("user_permissions")
@@ -20,6 +20,6 @@ data class UserPermissionDoc(
     @Id val id: String,
     val userId: String,
     val permission: String,
-    val grantedAt: Otc3,
-    val updatedAt: Otc3
+    val grantedAt: Instant,
+    val updatedAt: Instant
 )

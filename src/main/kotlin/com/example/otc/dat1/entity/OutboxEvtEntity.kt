@@ -4,7 +4,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import com.example.otc.common.lang.Otc3
+import java.time.Instant
 
 @Entity
 @Table(name = "T_OUTBOX_EVT")
@@ -25,8 +25,8 @@ class OutboxEvtEntity(
     var payloadJson: String = "",
 
     @Column(name = "created_at", nullable = false)
-    var createdAt: Otc3 = Otc3.now(),
+    var createdAt: Instant = Instant.now(),
 
     @Column(name = "sent_at", nullable = true)
-    var sentAt: Otc3? = null
+    var sentAt: Instant? = null
 )

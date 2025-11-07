@@ -1,11 +1,6 @@
 package com.example.otc.dsv.dbs.aggregate
-/**
- * 申请聚合模型：
- * - 描述申请在生命周期中的状态与允许的状态迁移。
- * - 强制执行不变式，防止从终止状态回退或非法迁移。
- */
 
-import com.example.otc.common.lang.OtcBigDecimal
+import java.math.BigDecimal
 
 enum class ApplicationStatus {
     Requested,
@@ -18,16 +13,16 @@ enum class ApplicationStatus {
 data class ApplicationAggregate(
     val id: String,
     val userId: String,
-    val depositAmount: OtcBigDecimal,
+    val depositAmount: BigDecimal,
     val depositCurrency: String,
     var status: ApplicationStatus
 ) {
     fun transitionTo(newStatus: ApplicationStatus) {
-        // 基本不变式：从终止状态（Approved/Failed）不可回退到其他状态
+        // basic invariant: no backward transitions from terminal states
         if (status == ApplicationStatus.Approved || status == ApplicationStatus.Failed) {
             throw IllegalStateException("Cannot transition from terminal state $status to $newStatus")
         }
-        // 允许的状态迁移集合
+        // allowed transitions
         val allowed = when (status) {
             ApplicationStatus.Requested -> setOf(ApplicationStatus.ValidatingDeposit)
             ApplicationStatus.ValidatingDeposit -> setOf(ApplicationStatus.GrantingPermission, ApplicationStatus.Failed)

@@ -3,24 +3,24 @@ package com.example.otc.dat1.mysql
 import com.example.otc.dat1.entity.MerchantApplicationEntity
 import com.example.otc.dsv.dbs.repository.ApplicationSnapshot
 import com.example.otc.dsv.dbs.repository.ApplicationsRepository
-import com.example.otc.common.lang.Otc10
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
-import com.example.otc.common.lang.OtcBigDecimal
-import com.example.otc.common.lang.Otc3
+import java.math.BigDecimal
+import java.time.Instant
 
 @Repository
 class ApplicationsRepositoryImpl(
     private val appJpa: MerchantApplicationJpa
 ) : ApplicationsRepository {
 
-    private val logger = Otc10.getLogger(ApplicationsRepositoryImpl::class.java)
+    private val logger = LoggerFactory.getLogger(ApplicationsRepositoryImpl::class.java)
 
     @Transactional
     override fun createApplication(
         applicationId: String,
         userId: String,
-        depositAmount: OtcBigDecimal,
+        depositAmount: BigDecimal,
         depositCurrency: String,
         status: String
     ): Boolean {
@@ -30,8 +30,8 @@ class ApplicationsRepositoryImpl(
             status = status,
             depositAmount = depositAmount,
             depositCurrency = depositCurrency,
-            createdAt = Otc3.now(),
-            updatedAt = Otc3.now()
+            createdAt = Instant.now(),
+            updatedAt = Instant.now()
         )
         appJpa.save(entity)
         logger.info("[Repo] create application: id={} status={}", applicationId, status)
@@ -53,7 +53,7 @@ class ApplicationsRepositoryImpl(
     override fun updateStatus(applicationId: String, status: String): Boolean {
         val entity = appJpa.findById(applicationId).orElse(null) ?: return false
         entity.status = status
-        entity.updatedAt = Otc3.now()
+        entity.updatedAt = Instant.now()
         appJpa.save(entity)
         logger.info("[Repo] update status: id={} status={}", applicationId, status)
         return true

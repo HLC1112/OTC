@@ -4,8 +4,8 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import com.example.otc.common.lang.OtcBigDecimal
-import com.example.otc.common.lang.Otc3
+import java.math.BigDecimal
+import java.time.Instant
 
 @Entity
 @Table(name = "T_MERCHANT_APPLICATION")
@@ -20,14 +20,14 @@ class MerchantApplicationEntity(
     var status: String = "",
 
     @Column(name = "deposit_amount", nullable = false, precision = 19, scale = 4)
-    var depositAmount: OtcBigDecimal = OtcBigDecimal.ZERO,
+    var depositAmount: BigDecimal = BigDecimal.ZERO,
 
     @Column(name = "deposit_currency", nullable = false)
     var depositCurrency: String = "",
 
     @Column(name = "created_at", nullable = false)
-    var createdAt: Otc3 = Otc3.now(),
+    var createdAt: Instant = Instant.now(),
 
     @Column(name = "updated_at", nullable = false)
-    var updatedAt: Otc3 = Otc3.now()
+    var updatedAt: Instant = Instant.now()
 )

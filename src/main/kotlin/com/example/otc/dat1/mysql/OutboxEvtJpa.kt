@@ -5,5 +5,4 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface OutboxEvtJpa : JpaRepository<OutboxEvtEntity, String> {
     fun findTop50BySentAtIsNullOrderByCreatedAtAsc(): List<OutboxEvtEntity>
-    fun findAllByAggregateIdInOrderByCreatedAtAsc(aggregateIds: List<String>): List<OutboxEvtEntity>
 }

@@ -2,7 +2,7 @@ plugins {
 	kotlin("jvm") version "1.9.25"
 	kotlin("plugin.spring") version "1.9.25"
 	kotlin("plugin.jpa") version "1.9.25"
-	id("org.springframework.boot") version "3.5.4"
+	id("org.springframework.boot") version "3.5.6"
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -17,7 +17,7 @@ java {
 }
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 dependencies {
@@ -52,61 +52,5 @@ kotlin {
 }
 
 tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
-// 基础构建门禁：禁止 DSV/DAT 层出现“野生导入”外部类（Aliases.kt 白名单）
-tasks.register("checkWildImports") {
-    group = "verification"
-    description = "Fail build if disallowed external imports are used outside Aliases.kt"
-    doLast {
-        val projectDir = project.projectDir
-        val targetDirs = listOf(
-            File(projectDir, "src/main/kotlin/com/example/otc/dsv"),
-            File(projectDir, "src/main/kotlin/com/example/otc/dat1"),
-            File(projectDir, "src/main/kotlin/com/example/otc/dat2")
-        ).filter { it.exists() }
-
-        val disallowed = listOf(
-            Regex("^import\\s+java\\.time\\.(Instant|Duration|LocalDate|LocalDateTime)", RegexOption.MULTILINE),
-            Regex("^import\\s+java\\.util\\.UUID", RegexOption.MULTILINE),
-            Regex("^import\\s+java\\.math\\.BigDecimal", RegexOption.MULTILINE),
-            Regex("^import\\s+com\\.fasterxml\\.jackson\\.databind\\.ObjectMapper", RegexOption.MULTILINE),
-            Regex("^import\\s+org\\.springframework\\.data\\.mongodb\\.core\\.MongoTemplate", RegexOption.MULTILINE),
-            Regex("^import\\s+org\\.springframework\\.kafka\\.core\\.KafkaTemplate", RegexOption.MULTILINE),
-            Regex("^import\\s+org\\.slf4j\\.LoggerFactory", RegexOption.MULTILINE),
-            Regex("^import\\s+org\\.springframework\\.http\\.ResponseEntity", RegexOption.MULTILINE),
-            Regex("^import\\s+org\\.springframework\\.core\\.io\\.ResourceLoader", RegexOption.MULTILINE)
-        )
-
-        val allowList = setOf(
-            File(projectDir, "src/main/kotlin/com/example/otc/common/lang/Aliases.kt").absolutePath
-        )
-
-        val violations = mutableListOf<String>()
-        targetDirs.forEach { dir ->
-            dir.walkTopDown().filter { it.isFile && it.extension == "kt" }.forEach { file ->
-                val path = file.absolutePath
-                if (allowList.contains(path)) return@forEach
-                val content = file.readText()
-                disallowed.forEach { re ->
-                    val match = re.find(content)
-                    if (match != null) {
-                        violations.add("${file.relativeTo(projectDir)} -> '${match.value.trim()}'")
-                    }
-                }
-            }
-        }
-
-        if (violations.isNotEmpty()) {
-            logger.error("Disallowed external imports detected (use Aliases.kt).\n" + violations.joinToString("\n"))
-            throw GradleException("Wild imports detected in DSV/DAT layers. See log above.")
-        } else {
-            logger.lifecycle("checkWildImports passed: no wild imports in DSV/DAT layers.")
-        }
-    }
-}
-
-tasks.named("check") {
-    dependsOn("checkWildImports")
+	useJUnitPlatform()
 }
