@@ -2,6 +2,7 @@ package com.example.otc.dsv.l
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
+import com.example.otc.infra.log.DistributedLogger
 import org.springframework.core.io.ResourceLoader
 import org.springframework.stereotype.Service
 import org.springframework.scheduling.annotation.Scheduled
@@ -16,12 +17,16 @@ data class AcceptorRules(
 @Service
 class L_AcceptorRules(
     private val resourceLoader: ResourceLoader,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val distributedLogger: DistributedLogger
 ) {
     private val logger = LoggerFactory.getLogger(L_AcceptorRules::class.java)
     private val cache = AtomicReference(AcceptorRules(BigDecimal(1000), listOf("USDT", "BTC")))
 
-    fun current(): AcceptorRules = cache.get()
+    fun current(): AcceptorRules {
+        distributedLogger.info("L_AcceptorRules", "Providing current acceptor rules", null)
+        return cache.get()
+    }
 
     @Scheduled(fixedDelay = 60000)
     fun refresh() {

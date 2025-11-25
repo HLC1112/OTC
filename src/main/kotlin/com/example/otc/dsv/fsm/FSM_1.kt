@@ -15,6 +15,7 @@ import com.example.otc.dsv.da_0.PermissionWriter
 import com.example.otc.dsv.dbs.aggregate.ApplicationStatus
 import com.example.otc.dsv.dbs.repository.ApplicationsRepository
 import com.example.otc.dsv.l.L_AcceptorRules
+import com.example.otc.infra.log.DistributedLogger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -40,6 +41,7 @@ class FSM_1(
     private val rules: L_AcceptorRules,
     private val permissionWriter: PermissionWriter,
     private val eventBus: EventBusPublisher,
+    private val distributedLogger: DistributedLogger,
     @Value("\${fsm.grant_permission.timeout_ms:30000}") private val permissionTimeoutMs: Long
 ) {
     private val logger = LoggerFactory.getLogger(FSM_1::class.java)
@@ -55,16 +57,16 @@ class FSM_1(
             depositCurrency = cmd.depositCurrency,
             status = ApplicationStatus.Requested.name
         )
-        logger.info("[FSM] ApplyReq accepted appId={} userId={}", applicationId, cmd.userId)
+        distributedLogger.info("FSM_1", "ApplyReq accepted appId=${applicationId} userId=${cmd.userId}", applicationId)
 
         // Step: ValidatingDeposit
         applicationsRepository.updateStatus(applicationId, ApplicationStatus.ValidatingDeposit.name)
-        logger.info("[FSM] ValidatingDeposit appId={}", applicationId)
+        distributedLogger.info("FSM_1", "ValidatingDeposit appId=${applicationId}", applicationId)
 
         // Step: ValidateDeposit(cmd)
         val vcmd = ValidateDepositCmd(applicationId, cmd.depositAmount, cmd.depositCurrency)
         val validationDoc: ValidationResultDoc = try {
-            DC1.validate(vcmd.amount, vcmd.currency, rules.current())
+            DC1.validate(applicationId, applicationId, vcmd.amount, vcmd.currency, rules.current())
                 .copy(applicationId = applicationId)
         } catch (ex: OtcException) {
             val doc = ValidationResultDoc(
@@ -74,15 +76,15 @@ class FSM_1(
                 message = ex.error.message,
                 details = mapOf("amount" to vcmd.amount, "currency" to vcmd.currency)
             )
-            logger.info("[FSM] ValidationResult: invalid code={} appId={}", ex.error.code, applicationId)
+            distributedLogger.info("FSM_1", "ValidationResult: invalid code=${ex.error.code} appId=${applicationId}", applicationId)
             applicationsRepository.updateStatus(applicationId, ApplicationStatus.Failed.name)
             throw ex
         }
-        logger.info("[FSM] ValidationResult valid appId={}", applicationId)
+        distributedLogger.info("FSM_1", "ValidationResult valid appId=${applicationId}", applicationId)
 
         // Step: GrantingPermission
         applicationsRepository.updateStatus(applicationId, ApplicationStatus.GrantingPermission.name)
-        logger.info("[FSM] GrantingPermission appId={}", applicationId)
+        distributedLogger.info("FSM_1", "GrantingPermission appId=${applicationId}", applicationId)
 
         val gcmd = GrantPermissionCmd(applicationId, cmd.userId, permission = "OTC_ACCEPTOR")
 
@@ -127,8 +129,7 @@ class FSM_1(
         }
 
         // Step: PermissionGranted(evt)
-        logger.info("[FSM] PermissionGranted appId={} userId={} permission={} at={}",
-            grantedEvt.applicationId, grantedEvt.userId, grantedEvt.permission, grantedEvt.grantedAt)
+        distributedLogger.info("FSM_1", "PermissionGranted appId=${grantedEvt.applicationId} userId=${grantedEvt.userId} permission=${grantedEvt.permission} at=${grantedEvt.grantedAt}", applicationId)
 
         // Step: ApplicationApproved(doc)
         val approvedDoc = ApplicationApprovedDoc(
@@ -138,7 +139,7 @@ class FSM_1(
             details = mapOf("validated" to true, "permission" to grantedEvt.permission)
         )
         eventBus.publishApplicationApproved(approvedDoc)
-        logger.info("[FSM] ApplicationApproved appId={} userId={}", applicationId, cmd.userId)
+        distributedLogger.info("FSM_1", "ApplicationApproved appId=${applicationId} userId=${cmd.userId}", applicationId)
 
         return applicationId
     }

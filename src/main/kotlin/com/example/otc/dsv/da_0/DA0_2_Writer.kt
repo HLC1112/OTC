@@ -9,6 +9,7 @@ import com.example.otc.dat1.mysql.OutboxEvtJpa
 import com.example.otc.dsv.dbs.repository.ApplicationsRepository
 import com.example.otc.dsv.dbs.repository.UserPermissionsRepository
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.example.otc.infra.log.DistributedLogger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,7 +24,8 @@ class PermissionWriter(
     private val applicationsRepository: ApplicationsRepository,
     private val userPermissionsRepository: UserPermissionsRepository,
     private val outboxJpa: OutboxEvtJpa,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val distributedLogger: DistributedLogger
 ) {
     private val logger = LoggerFactory.getLogger(PermissionWriter::class.java)
 
@@ -60,7 +62,7 @@ class PermissionWriter(
                 sentAt = null
             )
             outboxJpa.save(outbox)
-            logger.info("[DA0] Permission granted and outbox written. appId={}", applicationId)
+            distributedLogger.info("PermissionWriter", "Permission granted and outbox written. appId=${applicationId}", applicationId)
             return grantedEvt
         } catch (ex: OtcException) {
             throw ex

@@ -4,6 +4,7 @@ import com.example.otc.dat1.entity.MerchantApplicationEntity
 import com.example.otc.dsv.dbs.repository.ApplicationSnapshot
 import com.example.otc.dsv.dbs.repository.ApplicationsRepository
 import org.slf4j.LoggerFactory
+import com.example.otc.infra.log.DistributedLogger
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -11,7 +12,8 @@ import java.time.Instant
 
 @Repository
 class ApplicationsRepositoryImpl(
-    private val appJpa: MerchantApplicationJpa
+    private val appJpa: MerchantApplicationJpa,
+    private val distributedLogger: DistributedLogger
 ) : ApplicationsRepository {
 
     private val logger = LoggerFactory.getLogger(ApplicationsRepositoryImpl::class.java)
@@ -34,7 +36,7 @@ class ApplicationsRepositoryImpl(
             updatedAt = Instant.now()
         )
         appJpa.save(entity)
-        logger.info("[Repo] create application: id={} status={}", applicationId, status)
+        distributedLogger.info("ApplicationsRepositoryImpl(DBS)", "Persisting new application: ${applicationId}", applicationId)
         return true
     }
 
@@ -55,7 +57,7 @@ class ApplicationsRepositoryImpl(
         entity.status = status
         entity.updatedAt = Instant.now()
         appJpa.save(entity)
-        logger.info("[Repo] update status: id={} status={}", applicationId, status)
+        distributedLogger.info("ApplicationsRepositoryImpl(DBS)", "Updating status to ${status} for ${applicationId}", applicationId)
         return true
     }
 }
